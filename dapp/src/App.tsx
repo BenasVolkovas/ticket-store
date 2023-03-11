@@ -1,8 +1,8 @@
 import "./App.css";
 import { useState } from "react";
 import { TezosToolkit } from "@taquito/taquito";
-import ConnectButton from "./components/ConnectWallet";
-import DisconnectButton from "./components/DisconnectWallet";
+import HeaderNavigation from "./components/HeaderNavigation";
+import { AppShell, Navbar, Header, Footer, Title, Text } from "@mantine/core";
 
 const App = () => {
     // Constants
@@ -17,27 +17,31 @@ const App = () => {
     const [userAddress, setUserAddress] = useState<string>("");
 
     return (
-        <div className="main-box">
-            {userAddress ? (
-                <div>
-                    <p>UserAddress: {userAddress}</p>
-                    <DisconnectButton
-                        wallet={wallet}
-                        setUserAddress={setUserAddress}
-                        setWallet={setWallet}
-                    />
-                </div>
-            ) : (
-                <ConnectButton
-                    rpcUrl={rpcUrl}
-                    Tezos={Tezos}
-                    setContract={setContract}
-                    setWallet={setWallet}
-                    setUserAddress={setUserAddress}
-                    contractAddress={contractAddress}
-                    wallet={wallet}
-                />
-            )}
+        <div>
+            <AppShell
+                padding="md"
+                navbar={
+                    <Navbar width={{ base: 300 }} height={500} p="xs">
+                        fields
+                    </Navbar>
+                }
+                header={
+                    <Header height={60} p="xs">
+                        <HeaderNavigation
+                            rpcUrl={rpcUrl}
+                            Tezos={Tezos}
+                            wallet={wallet}
+                            setWallet={setWallet}
+                            userAddress={userAddress}
+                            setUserAddress={setUserAddress}
+                            contractAddress={contractAddress}
+                            setContract={setContract}
+                        />
+                    </Header>
+                }
+            >
+                <Text>default text</Text>
+            </AppShell>
         </div>
     );
 };

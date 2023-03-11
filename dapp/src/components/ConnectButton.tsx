@@ -2,25 +2,26 @@ import { Dispatch, SetStateAction, useEffect } from "react";
 import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from "@taquito/beacon-wallet";
 import { NetworkType } from "@airgap/beacon-dapp";
+import { Button } from "@mantine/core";
 
 type ButtonProps = {
     rpcUrl: string;
     Tezos: TezosToolkit;
-    setContract: Dispatch<SetStateAction<any>>;
+    wallet: BeaconWallet | null;
     setWallet: Dispatch<SetStateAction<any>>;
-    setUserAddress: Dispatch<SetStateAction<string>>;
     contractAddress: string;
-    wallet: BeaconWallet;
+    setContract: Dispatch<SetStateAction<any>>;
+    setUserAddress: Dispatch<SetStateAction<string>>;
 };
 
 const ConnectButton = ({
     rpcUrl,
     Tezos,
-    setContract,
-    setWallet,
-    setUserAddress,
-    contractAddress,
     wallet,
+    setWallet,
+    contractAddress,
+    setContract,
+    setUserAddress,
 }: ButtonProps): JSX.Element => {
     const setup = async (userAddress: string): Promise<void> => {
         // Creates contract instance
@@ -32,6 +33,7 @@ const ConnectButton = ({
 
     const connectWallet = async (): Promise<void> => {
         try {
+            if (!wallet) return;
             await wallet.requestPermissions({
                 network: {
                     type: NetworkType.GHOSTNET,
@@ -74,11 +76,9 @@ const ConnectButton = ({
     );
 
     return (
-        <div className="buttons">
-            <button className="button" onClick={connectWallet}>
-                Connect wallet
-            </button>
-        </div>
+        <Button color="red" radius="md" size="md" onClick={connectWallet}>
+            connect wallet
+        </Button>
     );
 };
 
