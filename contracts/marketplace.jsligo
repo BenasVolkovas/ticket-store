@@ -1,0 +1,240 @@
+#import "@ligo/fa/lib/fa2/asset/multi_asset.jsligo" "MULTIASSET"
+
+//user sells an offer for a token_id
+type Offer = {
+    quantity: nat,
+    price: nat
+};
+
+type Storage = {
+    admins: set<address>,
+    offers: map<[address, nat], Offer>,  
+    ledger: MULTIASSET.Ledger.t,
+    metadata: MULTIASSET.Metadata.t,
+    token_metadata: MULTIASSET.TokenMetadata.t,
+    operators: MULTIASSET.Operators.t,
+    owner_token_ids : set<[MULTIASSET.Storage.owner, MULTIASSET.Storage.token_id]>,
+    token_ids : set<MULTIASSET.Storage.token_id>
+};
+
+type Parameter =
+  | ["Mint", nat, nat, bytes, bytes, bytes, bytes] //token_id, quantity, name, description, version, symbol, bytesIpfsUrl
+  | ["AddAdmin", address]
+  | ["Buy", nat, nat, address]  // buy token_id, quantity at a seller offer price
+  | ["Sell", nat, nat, nat]  // sell token_id, quantity at a price
+  | ["Transfer", MULTIASSET.transfer]
+  | ["Balance_of", MULTIASSET.balance_of]
+  | ["Update_operators", MULTIASSET.update_operators];
+
+type Return = [list<operation>, Storage];
+
+const mint = (token_id: nat, quantity: nat, name: bytes, description: bytes, symbol: bytes, ipfsUrl: bytes, store: Storage) : Return => {
+   assert_with_error(quantity > (0 as nat), "MINT: not enough quantity");
+
+   const token_info: map<string, bytes> =
+        Map.literal(list([
+            ["name", name],
+            ["description",description],
+            ["interfaces", (bytes `["TZIP-12"]`)],
+            ["thumbnailUri", ipfsUrl],
+            ["symbol", symbol],
+            ["decimals", (bytes `0`)]
+        ])) as map<string, bytes>;
+
+
+    const metadata : bytes = bytes `{
+        "name":"ticket.store",
+        "description":"Decentralized ticket marketplace",
+        "version":"0.0.1",
+        "license":"MIT",
+        "authors":["Benas"],
+        "homepage":"",
+        "source":{
+            "tools":["Ligo"],
+            "location":"https://github.com/ligolang/contract-catalogue/tree/main/lib/fa2"},
+        "interfaces":["TZIP-012"],
+        "errors": [],
+        "views": []
+    }`;
+
+
+
+    return [
+        list([]) as list<operation>,
+        {
+            ...store,
+            ledger: Big_map.add([Tezos.get_sender(), token_id], quantity as nat, store.ledger) as MULTIASSET.Ledger.t,
+            metadata: Big_map.literal(list([["", bytes `tezos-storage:data`], ["data", metadata]])),
+            token_metadata: Big_map.add(token_id, {token_id: token_id, token_info: token_info}, store.token_metadata),
+            operators: Big_map.empty as MULTIASSET.Operators.t,
+            owner_token_ids: Set.add([Tezos.get_sender(), token_id], store.owner_token_ids),
+            token_ids: Set.add(token_id, store.token_ids)
+        }
+    ]
+};
+
+const add_admin = (admin: address, store: Storage) : Return => {
+    if (Set.mem(Tezos.get_sender(), store.admins)) {
+        return [
+            list([]) as list<operation>,
+            {
+                ...store,
+                admins: Set.add(admin, store.admins)
+            }
+        ]
+    } else {
+        return failwith("1");
+    }
+};
+
+
+const sell = (token_id: nat, quantity: nat, price: nat, store: Storage) : Return => {
+    // Check balance of seller
+    const sellerBalance = MULTIASSET.Ledger.get_for_user(store.ledger, Tezos.get_sender(), token_id);
+    assert_with_error(sellerBalance >= quantity, "SELL: not enough balance");
+
+    // Need to allow the contract itself to be an operator on behalf of the seller
+    const newOperators = MULTIASSET.Operators.add_operator(store.operators, Tezos.get_sender(), Tezos.get_self_address(), token_id);
+
+    //DECISION CHOICE: if offer already exists, we just override it
+    return [
+        list([]) as list<operation>,
+        {
+            ...store,
+            offers: Map.add([Tezos.get_sender(), token_id], {quantity: quantity, price: price}, store.offers),
+            operators: newOperators
+        }
+    ];
+};
+
+const buy = (token_id: nat, quantity: nat, seller: address, store: Storage) : Return => {
+    // Search for the offer
+    const offerOption: option<Offer> = Map.find_opt([seller, token_id], store.offers);
+    return match(offerOption, {
+        None : () => failwith("BUY: no offer found"),
+        Some : (offer : Offer) => {
+            // Check if amount have been paid enough
+            assert_with_error(Tezos.get_amount() >= offer.price * (1 as mutez), "BUY: not enough amount paid");
+
+            // Prepare transfer of XTZ to seller
+            const sellerContract: contract<unit> = Tezos.get_contract_with_error(seller, "BUY: seller not found");
+            const buyOperation = Tezos.transaction(unit, offer.price * (1 as mutez), sellerContract);
+
+            // Transfer tokens from seller to buyer (this also verifies that the seller has enough tokens)
+            let newLedger = MULTIASSET.Ledger.decrease_token_amount_for_user(store.ledger, seller, token_id, quantity);
+            newLedger = MULTIASSET.Ledger.increase_token_amount_for_user(newLedger, Tezos.get_sender(), token_id, quantity);
+
+            // Update new offer
+            const leftQuantity = abs(offer.quantity - quantity);
+            let newOffers = store.offers;
+            if (leftQuantity == (0 as nat)) {
+                // Remove offer if quantity is 0
+                newOffers = Map.remove([seller, token_id], newOffers);
+            } else {
+                const newOffer: Offer = {...offer, quantity: leftQuantity};
+                newOffers = Map.update([seller, token_id], Some(newOffer), newOffers);
+            }
+
+            return [
+                list([buyOperation]) as list<operation>,
+                {
+                    ...store,
+                    offers : newOffers,
+                    ledger : newLedger,
+                    owner_token_ids : Set.add([Tezos.get_sender(), token_id], store.owner_token_ids)
+                }
+            ];
+        }
+    });
+};
+
+const transfer = (transfers: MULTIASSET.transfer, store: Storage) : Return => {
+    const transferReturn: [list<operation>, MULTIASSET.storage] = MULTIASSET.transfer(transfers, {
+        ledger: store.ledger,
+        metadata: store.metadata,
+        token_metadata: store.token_metadata,
+        operators: store.operators,
+        owner_token_ids: store.owner_token_ids,
+        token_ids: store.token_ids
+    });
+    const operations: list<operation> = transferReturn[0];
+    const nftStore: MULTIASSET.storage = transferReturn[1];           
+
+    return [
+        operations,
+        {
+            ...store,
+            ledger:nftStore.ledger,
+            metadata:nftStore.metadata,
+            token_metadata:nftStore.token_metadata,
+            operators:nftStore.operators,
+            owner_token_ids:nftStore.owner_token_ids,
+            token_ids:nftStore.token_ids
+        }
+    ];
+};
+
+const balance_of = (balance: MULTIASSET.balance_of, store: Storage) : Return => {
+    const balanceReturn: [list<operation>, MULTIASSET.storage] = MULTIASSET.balance_of(balance, {
+        ledger: store.ledger,
+        metadata: store.metadata,
+        token_metadata: store.token_metadata,
+        operators:store. operators,
+        owner_token_ids: store.owner_token_ids,
+        token_ids:store.token_ids
+    });
+    const operations: list<operation> = balanceReturn[0];
+    const nftStore: MULTIASSET.storage = balanceReturn[1];
+
+    return [
+        operations,
+        {
+            ...store,
+            ledger:nftStore.ledger,
+            metadata:nftStore.metadata,
+            token_metadata:nftStore.token_metadata,
+            operators:nftStore.operators,
+            owner_token_ids:nftStore.owner_token_ids,
+            token_ids:nftStore.token_ids
+        }    
+    ];
+        
+};
+
+const update_operators = (update: MULTIASSET.update_operators, store: Storage) : Return => {
+    const updateReturn: [list<operation>, MULTIASSET.storage] = MULTIASSET.update_ops(update, {
+        ledger: store.ledger,
+        metadata: store.metadata,
+        token_metadata: store.token_metadata,
+        operators: store.operators,
+        owner_token_ids: store.owner_token_ids,
+        token_ids: store.token_ids});
+        
+
+    const operations: list<operation> = updateReturn[0];
+    const nftStore: MULTIASSET.storage = updateReturn[1];
+        
+        return [
+            operations,
+            {
+                ...store,
+                ledger: nftStore.ledger,
+                metadata: nftStore.metadata,
+                token_metadata: nftStore.token_metadata,
+                operators: nftStore.operators,
+                owner_token_ids: nftStore.owner_token_ids,
+                token_ids: nftStore.token_ids
+            }
+        ];
+};
+
+const main = (params: Parameter, store: Storage): Return =>
+    match(params, {
+        Mint: (p: [nat, nat, bytes, bytes, bytes, bytes, bytes]) => mint(p[0], p[1], p[2], p[3], p[4], p[5], store),
+        AddAdmin : (p: address) => add_admin(p, store),
+        Buy: (p : [nat, nat, address]) => buy(p[0], p[1], p[2], store),
+        Sell: (p : [nat, nat, nat]) => sell(p[0], p[1], p[2], store),
+        Transfer: (p: MULTIASSET.transfer) => transfer(p, store),
+        Balance_of: (p: MULTIASSET.balance_of) => balance_of(p, store),
+        Update_operators: (p: MULTIASSET.update_operator) => update_operators(p, store)
+});

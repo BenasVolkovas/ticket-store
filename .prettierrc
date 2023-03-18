@@ -1,0 +1,14 @@
+{
+  "overrides": [
+    {
+      "files": ["*.json", "*.jsligo", "*.ts", "*.graphql"],
+      "options": {
+        "printWidth": 79,
+        "tabWidth": 4,
+        "useTabs": false,
+        "singleQuote": false,
+        "bracketSpacing": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "ticket-store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BenasVolkovas/ticket-store.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BenasVolkovas/ticket-store/issues"
+  },
+  "homepage": "https://github.com/BenasVolkovas/ticket-store#readme",
+  "devDependencies": {
+    "@taqueria/plugin-contract-types": "^0.28.4",
+    "@taqueria/plugin-core": "^0.28.4",
+    "@taqueria/plugin-ligo": "^0.28.4",
+    "@taqueria/plugin-taquito": "^0.28.4"
+  }
+}
