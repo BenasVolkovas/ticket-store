@@ -25,8 +25,7 @@ const DisconnectButton = ({
 
     return (
         <Button
-            color="red"
-            radius="md"
+            color="blue"
             size="md"
             onClick={disconnectWallet}
         >{`${userAddress.slice(0, 7)}...${userAddress.slice(

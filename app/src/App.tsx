@@ -2,7 +2,24 @@ import "./App.css";
 import { useState } from "react";
 import { TezosToolkit } from "@taquito/taquito";
 import HeaderNavigation from "./components/HeaderNavigation";
-import { AppShell, Navbar, Header, Footer, Title, Text } from "@mantine/core";
+import {
+    AppShell,
+    Navbar,
+    Header,
+    Footer,
+    Title,
+    Text,
+    Button,
+} from "@mantine/core";
+import OffersPage from "./components/OffersPage";
+import MintPage from "./components/MintPage";
+import PortfolioPage from "./components/PortfolioPage";
+
+enum Page {
+    Offers,
+    Mint,
+    Portfolio,
+}
 
 const App = () => {
     // Constants
@@ -15,14 +32,44 @@ const App = () => {
     const [contract, setContract] = useState<any>(null);
     const [wallet, setWallet] = useState<any>(null);
     const [userAddress, setUserAddress] = useState<string>("");
+    const [page, setPage] = useState<Page>(Page.Offers);
 
     return (
         <div>
             <AppShell
                 padding="md"
                 navbar={
-                    <Navbar width={{ base: 300 }} height={500} p="xs">
-                        fields
+                    <Navbar width={{ base: 300 }} p="xs">
+                        <Navbar.Section m="xs">
+                            <Button
+                                fullWidth
+                                color="red"
+                                size="sm"
+                                onClick={() => setPage(Page.Offers)}
+                            >
+                                offers
+                            </Button>
+                        </Navbar.Section>
+                        <Navbar.Section m="xs">
+                            <Button
+                                fullWidth
+                                color="red"
+                                size="sm"
+                                onClick={() => setPage(Page.Mint)}
+                            >
+                                mint
+                            </Button>
+                        </Navbar.Section>
+                        <Navbar.Section m="xs">
+                            <Button
+                                fullWidth
+                                color="red"
+                                size="sm"
+                                onClick={() => setPage(Page.Portfolio)}
+                            >
+                                portfolio
+                            </Button>
+                        </Navbar.Section>
                     </Navbar>
                 }
                 header={
@@ -40,7 +87,13 @@ const App = () => {
                     </Header>
                 }
             >
-                <Text>default text</Text>
+                {page === Page.Offers ? (
+                    <OffersPage />
+                ) : page === Page.Mint ? (
+                    <MintPage />
+                ) : page === Page.Portfolio ? (
+                    <PortfolioPage />
+                ) : null}
             </AppShell>
         </div>
     );

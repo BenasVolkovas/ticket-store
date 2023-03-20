@@ -1,7 +1,15 @@
 {
   "overrides": [
     {
-      "files": ["*.json", "*.jsligo", "*.ts", "*.graphql"],
+      "files": [
+        "*.json",
+        "*.jsligo",
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx",
+        "*.graphql"
+      ],
       "options": {
         "printWidth": 79,
         "tabWidth": 4,

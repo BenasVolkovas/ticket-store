@@ -76,7 +76,7 @@ const ConnectButton = ({
     );
 
     return (
-        <Button color="red" radius="md" size="md" onClick={connectWallet}>
+        <Button color="blue" size="md" onClick={connectWallet}>
             connect wallet
         </Button>
     );
