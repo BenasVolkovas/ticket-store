@@ -3,14 +3,13 @@ import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from "@taquito/beacon-wallet";
 import { NetworkType } from "@airgap/beacon-dapp";
 import { Button } from "@mantine/core";
-
+import { Page } from "../App";
 type ButtonProps = {
     rpcUrl: string;
     Tezos: TezosToolkit;
     wallet: BeaconWallet | null;
     setWallet: Dispatch<SetStateAction<any>>;
-    contractAddress: string;
-    setContract: Dispatch<SetStateAction<any>>;
+    setPage: Dispatch<SetStateAction<any>>;
     setUserAddress: Dispatch<SetStateAction<string>>;
 };
 
@@ -19,15 +18,10 @@ const ConnectButton = ({
     Tezos,
     wallet,
     setWallet,
-    contractAddress,
-    setContract,
+    setPage,
     setUserAddress,
 }: ButtonProps): JSX.Element => {
     const setup = async (userAddress: string): Promise<void> => {
-        // Creates contract instance
-        const contract = await Tezos.wallet.at(contractAddress);
-        setContract(contract);
-
         setUserAddress(userAddress);
     };
 
@@ -44,6 +38,8 @@ const ConnectButton = ({
             // Get user's address
             const userAddress = await wallet.getPKH();
             await setup(userAddress);
+
+            setPage(Page.Offers);
         } catch (error) {
             console.log(error);
         }

@@ -18,7 +18,7 @@ type Storage = {
 };
 
 type Parameter =
-  | ["Mint", nat, nat, bytes, bytes, bytes, bytes] //token_id, quantity, name, description, version, symbol, bytesIpfsUrl
+  | ["Mint", nat, bytes, bytes, bytes] // quantity, name, symbol, bytesIpfsUrl
   | ["AddAdmin", address]
   | ["Buy", nat, nat, address]  // buy token_id, quantity at a seller offer price
   | ["Sell", nat, nat, nat]  // sell token_id, quantity at a price
@@ -28,23 +28,22 @@ type Parameter =
 
 type Return = [list<operation>, Storage];
 
-const mint = (token_id: nat, quantity: nat, name: bytes, description: bytes, symbol: bytes, ipfsUrl: bytes, store: Storage) : Return => {
-   assert_with_error(quantity > (0 as nat), "MINT: not enough quantity");
+const mint = (quantity: nat, name: bytes, symbol: bytes, ipfsUrl: bytes, store: Storage) : Return => {
+   if (quantity <= (0 as nat)) return failwith("MINT: not enough quantity");
 
    const token_info: map<string, bytes> =
         Map.literal(list([
             ["name", name],
-            ["description",description],
+            ["description", (bytes ``)],
             ["interfaces", (bytes `["TZIP-12"]`)],
             ["thumbnailUri", ipfsUrl],
             ["symbol", symbol],
             ["decimals", (bytes `0`)]
         ])) as map<string, bytes>;
 
-
     const metadata : bytes = bytes `{
         "name":"ticket.store",
-        "description":"Decentralized ticket marketplace",
+        "description":"Decentralized ticket store",
         "version":"0.0.1",
         "license":"MIT",
         "authors":["Benas"],
@@ -57,7 +56,7 @@ const mint = (token_id: nat, quantity: nat, name: bytes, description: bytes, sym
         "views": []
     }`;
 
-
+    const token_id: nat = Set.cardinal(store.token_ids);
 
     return [
         list([]) as list<operation>,
@@ -83,15 +82,22 @@ const add_admin = (admin: address, store: Storage) : Return => {
             }
         ]
     } else {
-        return failwith("1");
+        return failwith("ADD_ADMIN: not an admin");
     }
 };
+
+// @view
+const get_ticket_balance = ([user, token_id] : [address, nat], store: Storage) : nat => {
+    const sellerBalance = MULTIASSET.Ledger.get_for_user(store.ledger, user, token_id);
+    return sellerBalance;
+}
+
 
 
 const sell = (token_id: nat, quantity: nat, price: nat, store: Storage) : Return => {
     // Check balance of seller
     const sellerBalance = MULTIASSET.Ledger.get_for_user(store.ledger, Tezos.get_sender(), token_id);
-    assert_with_error(sellerBalance >= quantity, "SELL: not enough balance");
+    if (quantity > sellerBalance) return failwith("SELL: not enough balance");
 
     // Need to allow the contract itself to be an operator on behalf of the seller
     const newOperators = MULTIASSET.Operators.add_operator(store.operators, Tezos.get_sender(), Tezos.get_self_address(), token_id);
@@ -113,12 +119,13 @@ const buy = (token_id: nat, quantity: nat, seller: address, store: Storage) : Re
     return match(offerOption, {
         None : () => failwith("BUY: no offer found"),
         Some : (offer : Offer) => {
+            const purchaseCost = offer.price * quantity * (1 as mutez);
             // Check if amount have been paid enough
-            assert_with_error(Tezos.get_amount() >= offer.price * (1 as mutez), "BUY: not enough amount paid");
+            if (Tezos.get_amount() != purchaseCost) return failwith("BUY: not enough amount paid");
 
             // Prepare transfer of XTZ to seller
             const sellerContract: contract<unit> = Tezos.get_contract_with_error(seller, "BUY: seller not found");
-            const buyOperation = Tezos.transaction(unit, offer.price * (1 as mutez), sellerContract);
+            const buyOperation = Tezos.transaction(unit, purchaseCost, sellerContract);
 
             // Transfer tokens from seller to buyer (this also verifies that the seller has enough tokens)
             let newLedger = MULTIASSET.Ledger.decrease_token_amount_for_user(store.ledger, seller, token_id, quantity);
@@ -230,7 +237,7 @@ const update_operators = (update: MULTIASSET.update_operators, store: Storage) :
 
 const main = (params: Parameter, store: Storage): Return =>
     match(params, {
-        Mint: (p: [nat, nat, bytes, bytes, bytes, bytes, bytes]) => mint(p[0], p[1], p[2], p[3], p[4], p[5], store),
+        Mint: (p: [nat, bytes, bytes, bytes]) => mint(p[0], p[1], p[2], p[3], store),
         AddAdmin : (p: address) => add_admin(p, store),
         Buy: (p : [nat, nat, address]) => buy(p[0], p[1], p[2], store),
         Sell: (p : [nat, nat, nat]) => sell(p[0], p[1], p[2], store),

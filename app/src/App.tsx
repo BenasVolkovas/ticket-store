@@ -1,30 +1,33 @@
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TezosToolkit } from "@taquito/taquito";
 import HeaderNavigation from "./components/HeaderNavigation";
-import {
-    AppShell,
-    Navbar,
-    Header,
-    Footer,
-    Title,
-    Text,
-    Button,
-} from "@mantine/core";
-import OffersPage from "./components/OffersPage";
-import MintPage from "./components/MintPage";
-import PortfolioPage from "./components/PortfolioPage";
+import { AppShell, Navbar, Header, Button, Text } from "@mantine/core";
+import OffersPage from "./pages/OffersPage";
+import MintPage from "./pages/MintPage";
+import PortfolioPage from "./pages/PortfolioPage";
+import { BigNumber } from "bignumber.js";
 
-enum Page {
+export enum Page {
     Offers,
     Mint,
     Portfolio,
 }
 
+export type Ticket = {
+    [tokenId: string]: {
+        name: string;
+        imageUrl: string;
+        quantity: BigNumber;
+        user: string;
+        price: BigNumber;
+    };
+};
+
 const App = () => {
     // Constants
-    const contractAddress: string = "KT1QMGSLynvwwSfGbaiJ8gzWHibTCweCGcu8";
-    const rpcUrl: string = "https://ghostnet.ecadinfra.com";
+    const contractAddress: string = "KT1RTh21hG1RfnhLVtZaJc7VR7sfFVpiWMQN";
+    const rpcUrl: string = "https://rpc.ghostnet.teztnets.xyz";
     const Tezos: TezosToolkit = new TezosToolkit(rpcUrl);
 
     // State variables
@@ -34,42 +37,60 @@ const App = () => {
     const [userAddress, setUserAddress] = useState<string>("");
     const [page, setPage] = useState<Page>(Page.Offers);
 
+    const initialSetup = async () => {
+        // Creates contract instance
+        const tezosContract = await Tezos.wallet.at(contractAddress);
+        setContract(tezosContract);
+    };
+
+    useEffect(
+        () => {
+            initialSetup();
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
+
     return (
         <div>
             <AppShell
                 padding="md"
                 navbar={
-                    <Navbar width={{ base: 300 }} p="xs">
-                        <Navbar.Section m="xs">
+                    <Navbar width={{ base: 150 }} p="xs">
+                        <Navbar.Section>
                             <Button
                                 fullWidth
                                 color="red"
-                                size="sm"
+                                size="md"
                                 onClick={() => setPage(Page.Offers)}
                             >
                                 offers
                             </Button>
                         </Navbar.Section>
-                        <Navbar.Section m="xs">
-                            <Button
-                                fullWidth
-                                color="red"
-                                size="sm"
-                                onClick={() => setPage(Page.Mint)}
-                            >
-                                mint
-                            </Button>
-                        </Navbar.Section>
-                        <Navbar.Section m="xs">
-                            <Button
-                                fullWidth
-                                color="red"
-                                size="sm"
-                                onClick={() => setPage(Page.Portfolio)}
-                            >
-                                portfolio
-                            </Button>
-                        </Navbar.Section>
+                        {userAddress && (
+                            <>
+                                <Navbar.Section mt="xs">
+                                    <Button
+                                        fullWidth
+                                        color="red"
+                                        size="md"
+                                        onClick={() => setPage(Page.Mint)}
+                                    >
+                                        mint
+                                    </Button>
+                                </Navbar.Section>
+                                <Navbar.Section mt="xs">
+                                    <Button
+                                        fullWidth
+                                        color="red"
+                                        size="md"
+                                        onClick={() => setPage(Page.Portfolio)}
+                                    >
+                                        portfolio
+                                    </Button>
+                                </Navbar.Section>
+                            </>
+                        )}
                     </Navbar>
                 }
                 header={
@@ -81,16 +102,20 @@ const App = () => {
                             setWallet={setWallet}
                             userAddress={userAddress}
                             setUserAddress={setUserAddress}
-                            contractAddress={contractAddress}
-                            setContract={setContract}
+                            setPage={setPage}
                         />
                     </Header>
                 }
             >
-                {page === Page.Offers ? (
-                    <OffersPage />
+                {!contract ? (
+                    <Text>Loading...</Text>
+                ) : page === Page.Offers ? (
+                    <OffersPage
+                        contract={contract}
+                        userAddress={userAddress}
+                    />
                 ) : page === Page.Mint ? (
-                    <MintPage />
+                    <MintPage contract={contract} />
                 ) : page === Page.Portfolio ? (
                     <PortfolioPage />
                 ) : null}
