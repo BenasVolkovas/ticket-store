@@ -87,12 +87,10 @@ const add_admin = (admin: address, store: Storage) : Return => {
 };
 
 // @view
-const get_ticket_balance = ([user, token_id] : [address, nat], store: Storage) : nat => {
+const get_ticket_balance = ([user, token_id]: [address, nat], store: Storage) : nat => {
     const sellerBalance = MULTIASSET.Ledger.get_for_user(store.ledger, user, token_id);
     return sellerBalance;
 }
-
-
 
 const sell = (token_id: nat, quantity: nat, price: nat, store: Storage) : Return => {
     // Check balance of seller

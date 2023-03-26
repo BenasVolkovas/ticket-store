@@ -25,6 +25,7 @@ const DisconnectButton = ({
         setUserAddress("");
         setWallet(null);
         setPage(Page.Offers);
+        window.location.reload();
     };
 
     return (

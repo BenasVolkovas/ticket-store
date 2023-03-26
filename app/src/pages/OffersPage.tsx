@@ -7,9 +7,10 @@ import { Ticket } from "../App";
 type Props = {
     contract: any;
     userAddress: string;
+    setPage: any;
 };
 
-const OffersPage = ({ contract, userAddress }: Props) => {
+const OffersPage = ({ contract, userAddress, setPage }: Props) => {
     const [tickets, setTickets] = useState<Ticket>({});
 
     useEffect(
@@ -19,14 +20,16 @@ const OffersPage = ({ contract, userAddress }: Props) => {
                 let formattedTickets: Ticket = {};
                 let tokenIds: string[] = [];
                 storage.offers.forEach((value: any, key: any) => {
-                    tokenIds = [...tokenIds, key[1].toString()];
-                    formattedTickets[key[1].toString()] = {
-                        name: "", // will be added later from metadata
-                        imageUrl: "", // will be added later from metadata
-                        quantity: new BigNumber(value.quantity),
-                        user: key[0],
-                        price: new BigNumber(value.price),
-                    };
+                    if (key[0] !== userAddress) {
+                        tokenIds = [...tokenIds, key[1].toString()];
+                        formattedTickets[key[1].toString()] = {
+                            name: "", // will be added later from metadata
+                            imageUrl: "", // will be added later from metadata
+                            quantity: new BigNumber(value.quantity),
+                            user: key[0],
+                            price: new BigNumber(value.price),
+                        };
+                    }
                 });
 
                 const metadatas =
@@ -58,7 +61,6 @@ const OffersPage = ({ contract, userAddress }: Props) => {
                         }
                     );
                 });
-                console.log(formattedTickets);
                 setTickets(formattedTickets);
             };
             getTickets();
@@ -75,12 +77,15 @@ const OffersPage = ({ contract, userAddress }: Props) => {
                     return (
                         <NftCard
                             key={tokenId}
-                            tokenId={tokenId}
+                            tokenId={Number(tokenId)}
                             name={ticket.name}
                             imageUrl={ticket.imageUrl}
                             quantity={ticket.quantity}
                             user={ticket.user}
                             price={ticket.price}
+                            contract={contract}
+                            setPage={setPage}
+                            isForSale={true}
                         />
                     );
                 })}

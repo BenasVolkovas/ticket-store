@@ -40,6 +40,7 @@ const ConnectButton = ({
             await setup(userAddress);
 
             setPage(Page.Offers);
+            window.location.reload();
         } catch (error) {
             console.log(error);
         }

@@ -254,14 +254,7 @@ type MethodsObject = {
         callback: contract;
     }) => Promise<void>;
     buy: (params: { 0: nat; 1: nat; 2: address }) => Promise<void>;
-    mint: (params: {
-        0: nat;
-        1: nat;
-        2: bytes;
-        3: bytes;
-        4: bytes;
-        5: bytes;
-    }) => Promise<void>;
+    mint: (params: { 0: nat; 1: bytes; 2: bytes; 3: bytes }) => Promise<void>;
     sell: (params: { 0: nat; 1: nat; 2: nat }) => Promise<void>;
     transfer: (
         param: Array<{

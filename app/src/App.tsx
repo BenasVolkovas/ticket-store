@@ -1,4 +1,3 @@
-import "./App.css";
 import { useEffect, useState } from "react";
 import { TezosToolkit } from "@taquito/taquito";
 import HeaderNavigation from "./components/HeaderNavigation";
@@ -26,7 +25,7 @@ export type Ticket = {
 
 const App = () => {
     // Constants
-    const contractAddress: string = "KT1RTh21hG1RfnhLVtZaJc7VR7sfFVpiWMQN";
+    const contractAddress: string = "KT1UhGB4eYXw7xZJaBNenuoynGzhK7ZxoiVh";
     const rpcUrl: string = "https://rpc.ghostnet.teztnets.xyz";
     const Tezos: TezosToolkit = new TezosToolkit(rpcUrl);
 
@@ -113,11 +112,16 @@ const App = () => {
                     <OffersPage
                         contract={contract}
                         userAddress={userAddress}
+                        setPage={setPage}
                     />
                 ) : page === Page.Mint ? (
                     <MintPage contract={contract} />
                 ) : page === Page.Portfolio ? (
-                    <PortfolioPage />
+                    <PortfolioPage
+                        contract={contract}
+                        userAddress={userAddress}
+                        setPage={setPage}
+                    />
                 ) : null}
             </AppShell>
         </div>
