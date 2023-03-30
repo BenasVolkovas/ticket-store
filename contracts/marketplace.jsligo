@@ -1,6 +1,6 @@
 #import "@ligo/fa/lib/fa2/asset/multi_asset.jsligo" "MULTIASSET"
 
-//user sells an offer for a token_id
+// User sells an offer for a token_id
 type Offer = {
     quantity: nat,
     price: nat

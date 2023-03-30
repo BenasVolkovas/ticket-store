@@ -41,6 +41,8 @@ const PortfolioPage = () => {
                         const elementUser = element[0];
                         const elementTokenId = element[1];
 
+                        console.log(elementUser, elementTokenId);
+
                         if (elementUser === userAddress) {
                             tokenIds = [
                                 ...tokenIds,
@@ -64,31 +66,31 @@ const PortfolioPage = () => {
 
                 // Get ticket metadata (name, image)
                 metadatas.forEach((value: any) => {
-                    const id = value.token_id.toString();
+                    const tokenId = value.token_id.toString();
+                    let imageUrl = "";
+                    let name = "";
+
                     value.token_info.valueMap.forEach(
                         (hexItem: any, key: string) => {
                             const keyName = key.substring(1, key.length - 1);
 
                             if (keyName === "thumbnailUri") {
-                                formattedTickets[id] = {
-                                    ...formattedTickets[id],
-                                    imageUrl: Buffer.from(
-                                        hexItem,
-                                        "hex"
-                                    ).toString(),
-                                };
+                                imageUrl = Buffer.from(
+                                    hexItem,
+                                    "hex"
+                                ).toString();
                             } else if (keyName === "name") {
-                                formattedTickets[id] = {
-                                    ...formattedTickets[id],
-                                    name: Buffer.from(
-                                        hexItem,
-                                        "hex"
-                                    ).toString(),
-                                };
+                                name = Buffer.from(hexItem, "hex").toString();
                             }
                         }
                     );
+                    formattedTickets[tokenId] = {
+                        ...formattedTickets[tokenId],
+                        imageUrl: imageUrl,
+                        name: name,
+                    };
                 });
+                console.log(formattedTickets);
                 setTickets(formattedTickets);
             };
             getTickets();

@@ -12,6 +12,7 @@ import {
 import { BigNumber } from "bignumber.js";
 import { nat } from "../types";
 import { AppContext } from "../AppContext";
+import { notifications } from "@mantine/notifications";
 
 type Props = {
     tokenId: number;
@@ -46,10 +47,29 @@ const PortfolioNftCard = ({
                         new BigNumber(formattedPrice) as nat
                     )
                     .send();
+
+                notifications.show({
+                    title: "sell operation processing...",
+                    message: "🎫",
+                    loading: true,
+                    autoClose: false,
+                });
+
+                // Wait for confirmation
                 await sellOperation.confirmation(3);
-                window.location.reload();
+
+                notifications.clean();
+                notifications.show({
+                    title: "ticket listed successfully!",
+                    message: "🎫",
+                    color: "green",
+                });
             } catch (error) {
-                console.log(error);
+                notifications.show({
+                    title: "error occured!",
+                    message: "⚠️",
+                    color: "red",
+                });
             }
         }
     };

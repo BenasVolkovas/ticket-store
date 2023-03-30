@@ -1,37 +1,30 @@
-import {
-    TextInput,
-    NumberInput,
-    Button,
-    Title,
-    Notification,
-} from "@mantine/core";
+import { TextInput, NumberInput, Button, Title } from "@mantine/core";
 import { useState, useContext } from "react";
 import { bytes, nat } from "../types";
 import { char2Bytes } from "@taquito/utils";
 import BigNumber from "bignumber.js";
 import { AppContext } from "../AppContext";
+import { notifications } from "@mantine/notifications";
 
 const MintPage = () => {
     const { contract } = useContext(AppContext);
 
-    const [showNotification, setShowNotification] = useState<boolean>(false);
-    const [notificationMessage, setNotificationMessage] = useState<string>("");
     const [name, setName] = useState<string>("");
     const [symbol, setSymbol] = useState<string>("");
     const [quantity, setQuantity] = useState<number | undefined>(undefined);
     const [imageUrl, setImageUrl] = useState<string>("");
 
     const mintNewTicketGroup = async () => {
-        try {
-            // Open notification
-            setNotificationMessage("minting ticket group...");
-            setShowNotification(true);
+        // Validate input
+        if (!quantity) {
+            notifications.show({
+                title: "quantity is required!",
+                message: "🎫",
+            });
+            return;
+        }
 
-            // Validate input
-            if (!quantity) {
-                setNotificationMessage("quantity is required");
-                return;
-            }
+        try {
             // MINT in contract
             const mintOperation = await contract.methods
                 .mint(
@@ -41,16 +34,34 @@ const MintPage = () => {
                     char2Bytes(imageUrl) as bytes
                 )
                 .send();
+
+            notifications.show({
+                title: "minting ticket group...",
+                message: "🎫",
+                loading: true,
+                autoClose: false,
+            });
+
+            // Wait for confirmation
             await mintOperation.confirmation(3);
 
-            // Close notification
-            setNotificationMessage("ticket group minted successfully");
+            // Update values and notification
+            notifications.clean();
+            notifications.show({
+                title: "ticket group minted successfully!",
+                message: "🎫",
+                color: "green",
+            });
             setName("");
             setSymbol("");
             setQuantity(undefined);
             setImageUrl("");
         } catch (error) {
-            setNotificationMessage("not connected to wallet");
+            notifications.show({
+                title: "error occured!",
+                message: "⚠️",
+                color: "red",
+            });
         }
     };
 
@@ -98,15 +109,6 @@ const MintPage = () => {
             <Button size="sm" m="xs" onClick={() => mintNewTicketGroup()}>
                 submit
             </Button>
-
-            {showNotification && (
-                <Notification
-                    title="mint notification"
-                    onClose={() => setShowNotification(false)}
-                >
-                    {notificationMessage}
-                </Notification>
-            )}
         </div>
     );
 };

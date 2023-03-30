@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import * as serviceWorker from "./serviceWorker";
 import { MantineProvider } from "@mantine/core";
 import { AppProvider } from "./AppContext";
+import { Notifications } from "@mantine/notifications";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -11,6 +12,7 @@ root.render(
     <React.StrictMode>
         <AppProvider>
             <MantineProvider>
+                <Notifications />
                 <App />
             </MantineProvider>
         </AppProvider>
