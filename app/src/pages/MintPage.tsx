@@ -5,16 +5,15 @@ import {
     Title,
     Notification,
 } from "@mantine/core";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { bytes, nat } from "../types";
 import { char2Bytes } from "@taquito/utils";
 import BigNumber from "bignumber.js";
+import { AppContext } from "../AppContext";
 
-type Props = {
-    contract: any;
-};
+const MintPage = () => {
+    const { contract } = useContext(AppContext);
 
-const MintPage = ({ contract }: Props) => {
     const [showNotification, setShowNotification] = useState<boolean>(false);
     const [notificationMessage, setNotificationMessage] = useState<string>("");
     const [name, setName] = useState<string>("");
@@ -24,15 +23,16 @@ const MintPage = ({ contract }: Props) => {
 
     const mintNewTicketGroup = async () => {
         try {
+            // Open notification
             setNotificationMessage("minting ticket group...");
             setShowNotification(true);
 
-            // MINT in contract
+            // Validate input
             if (!quantity) {
                 setNotificationMessage("quantity is required");
                 return;
             }
-
+            // MINT in contract
             const mintOperation = await contract.methods
                 .mint(
                     new BigNumber(quantity) as nat,
@@ -41,16 +41,15 @@ const MintPage = ({ contract }: Props) => {
                     char2Bytes(imageUrl) as bytes
                 )
                 .send();
-
             await mintOperation.confirmation(3);
-            setNotificationMessage("ticket group minted successfully");
 
+            // Close notification
+            setNotificationMessage("ticket group minted successfully");
             setName("");
             setSymbol("");
             setQuantity(undefined);
             setImageUrl("");
         } catch (error) {
-            console.log(error);
             setNotificationMessage("not connected to wallet");
         }
     };

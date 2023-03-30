@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
     Card,
     Image,
@@ -11,13 +11,13 @@ import {
 } from "@mantine/core";
 import { BigNumber } from "bignumber.js";
 import { nat } from "../types";
+import { AppContext } from "../AppContext";
 
 type Props = {
     tokenId: number;
     name: string;
     imageUrl: string;
     quantity: BigNumber;
-    contract: any;
     isForSale: boolean;
 };
 
@@ -26,9 +26,10 @@ const PortfolioNftCard = ({
     name,
     imageUrl,
     quantity,
-    contract,
     isForSale,
 }: Props) => {
+    const { contract } = useContext(AppContext);
+
     const [sellQuantity, setSellQuantity] = useState<number | undefined>(
         undefined
     );
@@ -36,16 +37,20 @@ const PortfolioNftCard = ({
 
     const sell = async () => {
         if (sellQuantity && sellPrice) {
-            const formattedPrice = sellPrice * 1000000;
-            const sellOperation = await contract.methods
-                .sell(
-                    new BigNumber(tokenId) as nat,
-                    new BigNumber(sellQuantity) as nat,
-                    new BigNumber(formattedPrice) as nat
-                )
-                .send();
-            await sellOperation.confirmation(3);
-            window.location.reload();
+            try {
+                const formattedPrice = sellPrice * 1000000;
+                const sellOperation = await contract.methods
+                    .sell(
+                        new BigNumber(tokenId) as nat,
+                        new BigNumber(sellQuantity) as nat,
+                        new BigNumber(formattedPrice) as nat
+                    )
+                    .send();
+                await sellOperation.confirmation(3);
+                window.location.reload();
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
     Card,
     Image,
@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { BigNumber } from "bignumber.js";
 import { address, nat } from "../types";
+import { AppContext } from "../AppContext";
 
 type Props = {
     tokenId: number;
@@ -19,7 +20,6 @@ type Props = {
     quantity: BigNumber;
     user: string;
     price: BigNumber;
-    contract: any;
 };
 
 const OffersNftCard = ({
@@ -29,26 +29,33 @@ const OffersNftCard = ({
     quantity,
     user,
     price,
-    contract,
 }: Props) => {
+    const { contract } = useContext(AppContext);
+
     const [buyQuantity, setBuyQuantity] = useState<number | undefined>(
         undefined
     );
 
     const buy = async () => {
         if (buyQuantity) {
-            const buyOperation = await contract.methods
-                .buy(
-                    new BigNumber(tokenId) as nat,
-                    new BigNumber(buyQuantity) as nat,
-                    user as address
-                )
-                .send({
-                    amount: price.times(new BigNumber(buyQuantity)).toNumber(),
-                    mutez: true,
-                });
-            await buyOperation.confirmation(3);
-            window.location.reload();
+            try {
+                const buyOperation = await contract.methods
+                    .buy(
+                        new BigNumber(tokenId) as nat,
+                        new BigNumber(buyQuantity) as nat,
+                        user as address
+                    )
+                    .send({
+                        amount: price
+                            .times(new BigNumber(buyQuantity))
+                            .toNumber(),
+                        mutez: true,
+                    });
+                await buyOperation.confirmation(3);
+                window.location.reload();
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 

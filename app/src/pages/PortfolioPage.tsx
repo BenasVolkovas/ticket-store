@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Title, Text, Flex } from "@mantine/core";
 import { BigNumber } from "bignumber.js";
 import PortfolioNftCard from "../components/PortfolioNftCard";
 import { address } from "../types";
-
-type Props = {
-    contract: any;
-    userAddress: string;
-};
+import { AppContext } from "../AppContext";
 
 type PortfolioTickets = {
     [tokenId: string]: {
@@ -17,7 +13,8 @@ type PortfolioTickets = {
     };
 };
 
-const PortfolioPage = ({ contract, userAddress }: Props) => {
+const PortfolioPage = () => {
+    const { contract, userAddress } = useContext(AppContext);
     const [tickets, setTickets] = useState<PortfolioTickets>({});
     const [forSaleTicketIds, setForSaleTicketIds] = useState<string[]>([]);
 
@@ -115,7 +112,6 @@ const PortfolioPage = ({ contract, userAddress }: Props) => {
                                 name={ticket.name}
                                 imageUrl={ticket.imageUrl}
                                 quantity={ticket.quantity}
-                                contract={contract}
                                 isForSale={forSaleTicketIds.includes(tokenId)}
                             />
                         );

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { TezosToolkit } from "@taquito/taquito";
+import { useState, useContext } from "react";
 import HeaderNavigation from "./components/HeaderNavigation";
 import { AppShell, Navbar, Header, Button, Text } from "@mantine/core";
 import OffersPage from "./pages/OffersPage";
 import MintPage from "./pages/MintPage";
 import PortfolioPage from "./pages/PortfolioPage";
+import { AppContext } from "./AppContext";
 
 export enum Page {
     Offers,
@@ -13,31 +13,9 @@ export enum Page {
 }
 
 const App = () => {
-    // Constants
-    const contractAddress: string = "KT1UhGB4eYXw7xZJaBNenuoynGzhK7ZxoiVh";
-    const rpcUrl: string = "https://rpc.ghostnet.teztnets.xyz";
-    const Tezos: TezosToolkit = new TezosToolkit(rpcUrl);
+    const { contract, userAddress } = useContext(AppContext);
 
-    // State variables
-    // const [storage, setStorage] = useState<number>(0);
-    const [contract, setContract] = useState<any>(null);
-    const [wallet, setWallet] = useState<any>(null);
-    const [userAddress, setUserAddress] = useState<string>("");
     const [page, setPage] = useState<Page>(Page.Offers);
-
-    const initialSetup = async () => {
-        // Creates contract instance
-        const tezosContract = await Tezos.wallet.at(contractAddress);
-        setContract(tezosContract);
-    };
-
-    useEffect(
-        () => {
-            initialSetup();
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        []
-    );
 
     return (
         <div>
@@ -83,31 +61,18 @@ const App = () => {
                 }
                 header={
                     <Header height={60} p="xs">
-                        <HeaderNavigation
-                            rpcUrl={rpcUrl}
-                            Tezos={Tezos}
-                            wallet={wallet}
-                            setWallet={setWallet}
-                            userAddress={userAddress}
-                            setUserAddress={setUserAddress}
-                        />
+                        <HeaderNavigation />
                     </Header>
                 }
             >
                 {!contract ? (
                     <Text>loading...</Text>
                 ) : page === Page.Offers ? (
-                    <OffersPage
-                        contract={contract}
-                        userAddress={userAddress}
-                    />
+                    <OffersPage />
                 ) : page === Page.Mint ? (
-                    <MintPage contract={contract} />
+                    <MintPage />
                 ) : page === Page.Portfolio ? (
-                    <PortfolioPage
-                        contract={contract}
-                        userAddress={userAddress}
-                    />
+                    <PortfolioPage />
                 ) : null}
             </AppShell>
         </div>

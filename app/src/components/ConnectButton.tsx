@@ -1,24 +1,13 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
-import { TezosToolkit } from "@taquito/taquito";
+import { useContext, useEffect } from "react";
 import { BeaconWallet } from "@taquito/beacon-wallet";
 import { NetworkType } from "@airgap/beacon-dapp";
 import { Button } from "@mantine/core";
+import { AppContext } from "../AppContext";
 
-type ButtonProps = {
-    rpcUrl: string;
-    Tezos: TezosToolkit;
-    wallet: BeaconWallet | null;
-    setWallet: Dispatch<SetStateAction<any>>;
-    setUserAddress: Dispatch<SetStateAction<string>>;
-};
+const ConnectButton = () => {
+    const { rpcUrl, Tezos, wallet, setWallet, setUserAddress } =
+        useContext(AppContext);
 
-const ConnectButton = ({
-    rpcUrl,
-    Tezos,
-    wallet,
-    setWallet,
-    setUserAddress,
-}: ButtonProps): JSX.Element => {
     const setup = async (userAddress: string): Promise<void> => {
         setUserAddress(userAddress);
     };
@@ -43,26 +32,27 @@ const ConnectButton = ({
         }
     };
 
-    const initialSetup = async () => {
-        // Creates a wallet instance
-        const beaconWallet = new BeaconWallet({
-            name: "Dapp",
-            preferredNetwork: NetworkType.GHOSTNET,
-            disableDefaultEvents: false,
-        });
-        Tezos.setWalletProvider(beaconWallet);
-        setWallet(beaconWallet);
-
-        // Checks if wallet was connected before
-        const activeAccount = await beaconWallet.client.getActiveAccount();
-        if (activeAccount) {
-            const userAddress = await beaconWallet.getPKH();
-            await setup(userAddress);
-        }
-    };
-
     useEffect(
         () => {
+            const initialSetup = async () => {
+                // Creates a wallet instance
+                const beaconWallet = new BeaconWallet({
+                    name: "Dapp",
+                    preferredNetwork: NetworkType.GHOSTNET,
+                    disableDefaultEvents: false,
+                });
+                Tezos.setWalletProvider(beaconWallet);
+                setWallet(beaconWallet);
+
+                // Checks if wallet was connected before
+                const activeAccount =
+                    await beaconWallet.client.getActiveAccount();
+                if (activeAccount) {
+                    const userAddress = await beaconWallet.getPKH();
+                    await setup(userAddress);
+                }
+            };
+
             initialSetup();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps

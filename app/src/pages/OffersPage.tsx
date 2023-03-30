@@ -1,12 +1,8 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Title, Text, Flex } from "@mantine/core";
 import { BigNumber } from "bignumber.js";
 import OffersNftCard from "../components/OffersNftCard";
-
-type Props = {
-    contract: any;
-    userAddress: string;
-};
+import { AppContext } from "../AppContext";
 
 type SingleTicket = {
     name: string;
@@ -20,7 +16,8 @@ type OffersTicket = {
     [tokenId: string]: SingleTicket[];
 };
 
-const OffersPage = ({ contract, userAddress }: Props) => {
+const OffersPage = () => {
+    const { contract, userAddress } = useContext(AppContext);
     const [tickets, setTickets] = useState<OffersTicket>({});
 
     useEffect(
@@ -113,7 +110,6 @@ const OffersPage = ({ contract, userAddress }: Props) => {
                                     quantity={ticket.quantity}
                                     user={ticket.user}
                                     price={ticket.price}
-                                    contract={contract}
                                 />
                             );
                         });

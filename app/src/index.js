@@ -3,15 +3,17 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import * as serviceWorker from "./serviceWorker";
 import { MantineProvider } from "@mantine/core";
+import { AppProvider } from "./AppContext";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
-
 root.render(
     <React.StrictMode>
-        <MantineProvider>
-            <App />
-        </MantineProvider>
+        <AppProvider>
+            <MantineProvider>
+                <App />
+            </MantineProvider>
+        </AppProvider>
     </React.StrictMode>
 );
 

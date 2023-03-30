@@ -1,20 +1,11 @@
-import { Dispatch, SetStateAction } from "react";
-import { BeaconWallet } from "@taquito/beacon-wallet";
+import { useContext } from "react";
 import { Button } from "@mantine/core";
+import { AppContext } from "../AppContext";
 
-interface ButtonProps {
-    wallet: BeaconWallet | null;
-    setWallet: Dispatch<SetStateAction<any>>;
-    userAddress: string;
-    setUserAddress: Dispatch<SetStateAction<string>>;
-}
+const DisconnectButton = () => {
+    const { wallet, setWallet, userAddress, setUserAddress } =
+        useContext(AppContext);
 
-const DisconnectButton = ({
-    wallet,
-    setWallet,
-    userAddress,
-    setUserAddress,
-}: ButtonProps): JSX.Element => {
     const disconnectWallet = async (): Promise<void> => {
         if (wallet) {
             await wallet.clearActiveAccount();
