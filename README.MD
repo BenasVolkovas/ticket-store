@@ -8,6 +8,7 @@ Final project for the Turing College course "Tezos Smart Contracts"
 - [Installation](https://github.com/BenasVolkovas/ticket-store#Installation)
 - [Contract address](https://github.com/BenasVolkovas/ticket-store#Contract-address)
 - [Biggest challenge](https://github.com/BenasVolkovas/ticket-store#Biggest-challenge)
+- [Security](https://github.com/BenasVolkovas/ticket-store#Security)
 
 ## Traditional ticketing system problems
 1. Ticket fraud: Traditional paper tickets can be easily duplicated or forged, leading to ticket fraud and loss of revenue for event organizers.
