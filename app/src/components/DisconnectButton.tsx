@@ -1,14 +1,12 @@
 import { Dispatch, SetStateAction } from "react";
 import { BeaconWallet } from "@taquito/beacon-wallet";
 import { Button } from "@mantine/core";
-import { Page } from "../App";
 
 interface ButtonProps {
     wallet: BeaconWallet | null;
     setWallet: Dispatch<SetStateAction<any>>;
     userAddress: string;
     setUserAddress: Dispatch<SetStateAction<string>>;
-    setPage: Dispatch<SetStateAction<any>>;
 }
 
 const DisconnectButton = ({
@@ -16,7 +14,6 @@ const DisconnectButton = ({
     setWallet,
     userAddress,
     setUserAddress,
-    setPage,
 }: ButtonProps): JSX.Element => {
     const disconnectWallet = async (): Promise<void> => {
         if (wallet) {
@@ -24,7 +21,6 @@ const DisconnectButton = ({
         }
         setUserAddress("");
         setWallet(null);
-        setPage(Page.Offers);
         window.location.reload();
     };
 

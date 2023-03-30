@@ -19,7 +19,7 @@ const MintPage = ({ contract }: Props) => {
     const [notificationMessage, setNotificationMessage] = useState<string>("");
     const [name, setName] = useState<string>("");
     const [symbol, setSymbol] = useState<string>("");
-    const [quantity, setQuantity] = useState<number>(0);
+    const [quantity, setQuantity] = useState<number | undefined>(undefined);
     const [imageUrl, setImageUrl] = useState<string>("");
 
     const mintNewTicketGroup = async () => {
@@ -28,7 +28,11 @@ const MintPage = ({ contract }: Props) => {
             setShowNotification(true);
 
             // MINT in contract
-            console.log(contract);
+            if (!quantity) {
+                setNotificationMessage("quantity is required");
+                return;
+            }
+
             const mintOperation = await contract.methods
                 .mint(
                     new BigNumber(quantity) as nat,
@@ -43,7 +47,7 @@ const MintPage = ({ contract }: Props) => {
 
             setName("");
             setSymbol("");
-            setQuantity(0);
+            setQuantity(undefined);
             setImageUrl("");
         } catch (error) {
             console.log(error);
@@ -79,7 +83,8 @@ const MintPage = ({ contract }: Props) => {
                 withAsterisk={false}
                 m="xs"
                 value={quantity}
-                onChange={(newNum) => setQuantity(newNum === "" ? 0 : newNum)}
+                onChange={(newNum) => setQuantity(newNum ? newNum : undefined)}
+                min={1}
             />
             <TextInput
                 label="image url"

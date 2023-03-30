@@ -1,27 +1,34 @@
 import { useEffect, useState } from "react";
 import { Title, Text, Flex } from "@mantine/core";
 import { BigNumber } from "bignumber.js";
-import NftCard from "../components/NftCard";
-import { Ticket } from "../App";
-import { address, nat } from "../types";
+import PortfolioNftCard from "../components/PortfolioNftCard";
+import { address } from "../types";
 
 type Props = {
     contract: any;
     userAddress: string;
-    setPage: any;
 };
 
-const PortfolioPage = ({ contract, userAddress, setPage }: Props) => {
-    const [tickets, setTickets] = useState<Ticket>({});
+type PortfolioTickets = {
+    [tokenId: string]: {
+        name: string;
+        imageUrl: string;
+        quantity: BigNumber;
+    };
+};
+
+const PortfolioPage = ({ contract, userAddress }: Props) => {
+    const [tickets, setTickets] = useState<PortfolioTickets>({});
     const [forSaleTicketIds, setForSaleTicketIds] = useState<string[]>([]);
 
     useEffect(
         () => {
             const getTickets = async () => {
                 const storage = await contract.storage();
-                let formattedTickets: Ticket = {};
+                let formattedTickets: PortfolioTickets = {};
                 let tokenIds: string[] = [];
 
+                // Get tickets that are for sale
                 storage.offers.forEach((value: any, key: any) => {
                     if (key[0] === userAddress) {
                         setForSaleTicketIds((current) => [
@@ -31,20 +38,25 @@ const PortfolioPage = ({ contract, userAddress, setPage }: Props) => {
                     }
                 });
 
+                // Get specific ticket group information (quantity)
                 await Promise.all(
                     storage.owner_token_ids.map(async (element: any) => {
-                        if (element[0] === userAddress) {
+                        const elementUser = element[0];
+                        const elementTokenId = element[1];
+
+                        if (elementUser === userAddress) {
+                            tokenIds = [
+                                ...tokenIds,
+                                elementTokenId.toString(),
+                            ];
                             const ownerBalance = await storage.ledger.get({
                                 0: userAddress as address,
-                                1: element[1],
+                                1: elementTokenId,
                             });
-                            tokenIds = [...tokenIds, element[1].toString()];
-                            formattedTickets[element[1].toString()] = {
+                            formattedTickets[elementTokenId.toString()] = {
                                 name: "", // will be added later from metadata
                                 imageUrl: "", // will be added later from metadata
                                 quantity: ownerBalance,
-                                user: element[0],
-                                price: new BigNumber(0),
                             };
                         }
                     })
@@ -53,25 +65,26 @@ const PortfolioPage = ({ contract, userAddress, setPage }: Props) => {
                 const metadatas =
                     await storage.token_metadata.getMultipleValues(tokenIds);
 
+                // Get ticket metadata (name, image)
                 metadatas.forEach((value: any) => {
                     const id = value.token_id.toString();
                     value.token_info.valueMap.forEach(
-                        (element: any, key: string) => {
-                            key = key.substring(1, key.length - 1);
+                        (hexItem: any, key: string) => {
+                            const keyName = key.substring(1, key.length - 1);
 
-                            if (key === "thumbnailUri") {
+                            if (keyName === "thumbnailUri") {
                                 formattedTickets[id] = {
                                     ...formattedTickets[id],
                                     imageUrl: Buffer.from(
-                                        element,
+                                        hexItem,
                                         "hex"
                                     ).toString(),
                                 };
-                            } else if (key === "name") {
+                            } else if (keyName === "name") {
                                 formattedTickets[id] = {
                                     ...formattedTickets[id],
                                     name: Buffer.from(
-                                        element,
+                                        hexItem,
                                         "hex"
                                     ).toString(),
                                 };
@@ -90,24 +103,25 @@ const PortfolioPage = ({ contract, userAddress, setPage }: Props) => {
     return (
         <div>
             <Title m="xs">tickets in portfolio</Title>
-            <Flex>
-                {Object.entries(tickets).map(([tokenId, ticket]) => {
-                    return (
-                        <NftCard
-                            key={tokenId}
-                            tokenId={Number(tokenId)}
-                            name={ticket.name}
-                            imageUrl={ticket.imageUrl}
-                            quantity={ticket.quantity}
-                            user={ticket.user}
-                            price={ticket.price}
-                            contract={contract}
-                            setPage={setPage}
-                            isForSale={forSaleTicketIds.includes(tokenId)}
-                        />
-                    );
-                })}
-            </Flex>
+            {Object.keys(tickets).length === 0 ? (
+                <Text m="sm">loading...</Text>
+            ) : (
+                <Flex>
+                    {Object.entries(tickets).map(([tokenId, ticket]) => {
+                        return (
+                            <PortfolioNftCard
+                                key={tokenId}
+                                tokenId={Number(tokenId)}
+                                name={ticket.name}
+                                imageUrl={ticket.imageUrl}
+                                quantity={ticket.quantity}
+                                contract={contract}
+                                isForSale={forSaleTicketIds.includes(tokenId)}
+                            />
+                        );
+                    })}
+                </Flex>
+            )}
         </div>
     );
 };

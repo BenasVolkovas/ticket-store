@@ -5,23 +5,12 @@ import { AppShell, Navbar, Header, Button, Text } from "@mantine/core";
 import OffersPage from "./pages/OffersPage";
 import MintPage from "./pages/MintPage";
 import PortfolioPage from "./pages/PortfolioPage";
-import { BigNumber } from "bignumber.js";
 
 export enum Page {
     Offers,
     Mint,
     Portfolio,
 }
-
-export type Ticket = {
-    [tokenId: string]: {
-        name: string;
-        imageUrl: string;
-        quantity: BigNumber;
-        user: string;
-        price: BigNumber;
-    };
-};
 
 const App = () => {
     // Constants
@@ -101,18 +90,16 @@ const App = () => {
                             setWallet={setWallet}
                             userAddress={userAddress}
                             setUserAddress={setUserAddress}
-                            setPage={setPage}
                         />
                     </Header>
                 }
             >
                 {!contract ? (
-                    <Text>Loading...</Text>
+                    <Text>loading...</Text>
                 ) : page === Page.Offers ? (
                     <OffersPage
                         contract={contract}
                         userAddress={userAddress}
-                        setPage={setPage}
                     />
                 ) : page === Page.Mint ? (
                     <MintPage contract={contract} />
@@ -120,7 +107,6 @@ const App = () => {
                     <PortfolioPage
                         contract={contract}
                         userAddress={userAddress}
-                        setPage={setPage}
                     />
                 ) : null}
             </AppShell>

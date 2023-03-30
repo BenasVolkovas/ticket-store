@@ -12,7 +12,6 @@ type HeaderProps = {
     setWallet: Dispatch<SetStateAction<any>>;
     userAddress: string;
     setUserAddress: Dispatch<SetStateAction<string>>;
-    setPage: Dispatch<SetStateAction<any>>;
 };
 
 const HeaderNavigation = ({
@@ -22,7 +21,6 @@ const HeaderNavigation = ({
     setWallet,
     userAddress,
     setUserAddress,
-    setPage,
 }: HeaderProps): JSX.Element => {
     return (
         <div
@@ -39,7 +37,6 @@ const HeaderNavigation = ({
                     setWallet={setWallet}
                     userAddress={userAddress}
                     setUserAddress={setUserAddress}
-                    setPage={setPage}
                 />
             ) : (
                 <ConnectButton
@@ -47,7 +44,6 @@ const HeaderNavigation = ({
                     Tezos={Tezos}
                     wallet={wallet}
                     setWallet={setWallet}
-                    setPage={setPage}
                     setUserAddress={setUserAddress}
                 />
             )}
