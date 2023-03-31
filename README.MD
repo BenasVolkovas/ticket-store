@@ -46,4 +46,4 @@ Final project for the Turing College course "Tezos Smart Contracts"
 7. Open `https://localhost:3000` in your browser
 
 ## Contract address
-KT1UhGB4eYXw7xZJaBNenuoynGzhK7ZxoiVh
+KT1WMbjMrhvJptAXL5Er2QwiySWJfRzkPsbh

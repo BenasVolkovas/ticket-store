@@ -41,8 +41,6 @@ const PortfolioPage = () => {
                         const elementUser = element[0];
                         const elementTokenId = element[1];
 
-                        console.log(elementUser, elementTokenId);
-
                         if (elementUser === userAddress) {
                             tokenIds = [
                                 ...tokenIds,
@@ -90,7 +88,6 @@ const PortfolioPage = () => {
                         name: name,
                     };
                 });
-                console.log(formattedTickets);
                 setTickets(formattedTickets);
             };
             getTickets();
@@ -103,9 +100,9 @@ const PortfolioPage = () => {
         <div>
             <Title m="xs">tickets in portfolio</Title>
             {Object.keys(tickets).length === 0 ? (
-                <Text m="sm">loading...</Text>
+                <Text m="sm">no tickets!</Text>
             ) : (
-                <Flex>
+                <Flex wrap="wrap">
                     {Object.entries(tickets).map(([tokenId, ticket]) => {
                         return (
                             <PortfolioNftCard

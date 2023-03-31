@@ -1,7 +1,7 @@
 #include "marketplace.jsligo"
 
 const default_storage = {
-    admins: Set.literal(list([Tezos.get_sender()])) as set<address>,
+    admins: Set.literal(list(["tz1iTL7dzcqj8iPfrTw6sPLKbKdMnH2vhm27" as address])) as set<address>,
     offers: Map.empty as map<[address, nat], Offer>,
     ledger: Big_map.empty as MULTIASSET.Ledger.t,
     metadata: Big_map.empty as MULTIASSET.Metadata.t,

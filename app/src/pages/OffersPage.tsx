@@ -96,9 +96,9 @@ const OffersPage = () => {
         <div>
             <Title m="xs">tickets for sale</Title>
             {Object.keys(tickets).length === 0 ? (
-                <Text m="sm">loading...</Text>
+                <Text m="sm">no tickets!</Text>
             ) : (
-                <Flex>
+                <Flex wrap="wrap">
                     {Object.entries(tickets).map(([tokenId, ticketsList]) => {
                         return ticketsList.map((ticket) => {
                             return (

@@ -8,8 +8,9 @@ export function AppProvider({ children }: any) {
     const [wallet, setWallet] = useState<any>(null);
     const [userAddress, setUserAddress] = useState<string>("");
 
-    const contractAddress: string = "KT1UhGB4eYXw7xZJaBNenuoynGzhK7ZxoiVh";
-    const rpcUrl: string = "https://rpc.ghostnet.teztnets.xyz";
+    const contractAddress: string =
+        process.env.REACT_APP_CONTRACT_ADDRESS?.toString() || "";
+    const rpcUrl: string = process.env.REACT_APP_RPC_URL?.toString() || "";
     const Tezos: TezosToolkit = new TezosToolkit(rpcUrl);
 
     useEffect(

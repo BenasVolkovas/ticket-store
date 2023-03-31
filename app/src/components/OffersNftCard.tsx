@@ -80,9 +80,15 @@ const OffersNftCard = ({
     };
 
     return (
-        <Card shadow="sm" p="md" m="md" withBorder style={{ width: "300px" }}>
+        <Card
+            shadow="sm"
+            p="md"
+            m="md"
+            withBorder
+            sx={{ width: "400px", flexGrow: 1, flexShrink: 0 }}
+        >
             <Card.Section>
-                <Image src={imageUrl} height={200} alt={tokenId.toString()} />
+                <Image src={imageUrl} height={150} alt={tokenId.toString()} />
             </Card.Section>
             <Card.Section mt="xs" mb="xs" ml="0" mr="0">
                 <Group position="apart">
